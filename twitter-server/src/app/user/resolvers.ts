@@ -2,7 +2,7 @@ import axios from "axios";
 import { prismaClient } from "../../clients/db";
 import JWTService from "../../services/jwt";
 import { GraphqlContext } from "../../types";
-import { User } from "@prisma/client";
+import { Prisma, User } from "@prisma/client";
 import { generateUsername, getUserByUsername } from "../../services/username-generator";
 import bcrypt from 'bcrypt';
 import UserService from "../../services/user";
@@ -40,6 +40,17 @@ interface LoginUser {
     password: string;
 }
 
+interface UpdateUser {
+    name: string;
+    username: string | undefined;
+    email: string;
+    password?: string;
+    newPassword?: string;
+    bio?:  string | undefined;
+    coverImage?:  string | undefined;
+    profileImage?: string | undefined;
+}
+
 const queries = {
 
     verifyGoogleToken: async (parent: any, { token }: { token: string }) => {
@@ -49,6 +60,13 @@ const queries = {
     loginUser: async (parent: any, { payload }: { payload: LoginUser }) => {
         const jwtToken = await UserService.loginUser({ ...payload })
         return jwtToken;
+    },
+    updateUser: async (parent: any, { payload }: { payload: UpdateUser }, ctx: GraphqlContext) => {
+        const id = ctx.user?.id;
+        if (!id) return null;
+        const jwtToken = await UserService.updateUser({ id, ...payload });
+        return jwtToken;
+
     },
     getCurrentUser: async (parent: any, args: any, ctx: GraphqlContext) => {
         // console.log(ctx.user);
@@ -128,12 +146,12 @@ const extraResolvers = {
         recommendedUsers: async (parent: User, args: any, ctx: GraphqlContext) => {
             if (!ctx.user) return [];
             const cachedValue = await redisClient.get(
-              `RECOMMENDED_USERS:${ctx.user.id}`
+                `RECOMMENDED_USERS:${ctx.user.id}`
             );
 
             if (cachedValue) {
-              console.log("Cache Found");
-              return JSON.parse(cachedValue);
+                console.log("Cache Found");
+                return JSON.parse(cachedValue);
             }
 
             const myFollowings = await prismaClient.follows.findMany({
@@ -164,8 +182,8 @@ const extraResolvers = {
 
             console.log("Cache Not Found");
             await redisClient.set(
-              `RECOMMENDED_USERS:${ctx.user.id}`,
-              JSON.stringify(users)
+                `RECOMMENDED_USERS:${ctx.user.id}`,
+                JSON.stringify(users)
             );
 
             return users;

@@ -17,19 +17,14 @@ import {
 } from "@/components/ui/form"
 
 import { Input } from "@/components/ui/input"
-import { FormError } from '@/components/form-error';
-import { FormSuccess } from '@/components/form-success';
-import { useCallback, useState, useTransition } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ClipLoader } from 'react-spinners';
 import { useToast } from '../ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { graphqlClient } from '@/clients/api';
 import { getLoginUserQuery } from '@/graphql/query/user';
-import Error, { ErrorProps } from 'next/error';
-
-
 
 const LoginForm = () => {
 
@@ -55,7 +50,6 @@ const LoginForm = () => {
             const { loginUser } = await graphqlClient.request(getLoginUserQuery, { payload: { email: values.email, password: values.password } });
 
             // console.log(loginUser);
-            console.log(loginUser);
 
             if (!loginUser) {
                 toast({ variant: "destructive", title: "Email or password is incorrect!", description: "Something went wrong!" });

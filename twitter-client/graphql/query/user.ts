@@ -16,6 +16,9 @@ export const getCurrentUserQuery = graphql(`
       name
       username
       profileImage
+      coverImage
+      bio
+      isOAuth
       recommendedUsers {
         id
         name
@@ -73,7 +76,6 @@ query GetUserByName($username: String!) {
       profileImage
       name
       username
-
     }
   }
  }
@@ -85,6 +87,15 @@ export const getLoginUserQuery = graphql(`
 
 query LoginUser($payload: LoginUser!) {
   loginUser(payload: $payload)
+}
+
+`);
+
+export const getUpdateUserQuery = graphql(`
+#graphql
+
+query Query($payload: UpdateUser!) {
+  updateUser(payload: $payload)
 }
 
 `);

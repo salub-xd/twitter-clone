@@ -1,9 +1,10 @@
 import axios from "axios";
 import { prismaClient } from "../clients/db";
 import JWTService from "./jwt";
-import { generateUsername } from "./username-generator";
+import { generateUsername, getUserByUsername } from "./username-generator";
 import bcrypt from 'bcrypt';
 import { redisClient } from "../clients/redis";
+import { Prisma } from "@prisma/client";
 
 interface GoogleTokenResult {
   iss?: string;
@@ -37,6 +38,18 @@ interface CreateUser {
   password: string;
 }
 
+interface UpdateUser {
+  id: string;
+  name: string;
+  username: string | undefined;
+  email: string | undefined;
+  password?: string;
+  newPassword?: string;
+  bio?:  string | undefined;
+  coverImage?: string | undefined;
+  profileImage?: string | undefined;
+}
+
 class UserService {
   public static async verifyGoogleAuthToken(token: string) {
     const googleToken = token;
@@ -63,6 +76,7 @@ class UserService {
           name: data.given_name,
           username: username,
           profileImage: data.picture,
+          isOAuth: true,
         },
       });
     }
@@ -128,6 +142,95 @@ class UserService {
     return userToken;
   };
 
+  public static async updateUser(data: UpdateUser) {
+
+    let { name, username, email, password, newPassword, bio, coverImage, profileImage, id } = data;
+    console.log(name, username, email, password, newPassword, bio, coverImage, profileImage, id);
+
+    const dbUser = await prismaClient.user.findUnique({
+      where: {
+        id
+      }
+    });
+
+    if (!dbUser) {
+      console.log("user don't exists");
+      return { error: "User dosn't exists!" };
+    }
+    console.log("user exists")
+
+    if (dbUser.isOAuth) {
+      console.log("user isOAuth")
+
+      password = undefined;
+      newPassword = undefined;
+    }
+
+    console.log("user .")
+
+    if (username && username !== dbUser.username) {
+      const usernameAvailable = await getUserByUsername(username);
+      if (usernameAvailable) {
+        return { error: "Username already in use!" };
+      }
+      
+    }
+
+    if (email) {
+      const existingUser = await prismaClient.user.findUnique({
+        where: {
+          email
+        }
+      });
+
+      if (existingUser && existingUser.id !== dbUser.id) {
+        return { error: "Email already in use!" };
+      }
+    }
+
+    if (password && newPassword && dbUser.password) {
+      const passwordsMatch = await bcrypt.compare(
+        password,
+        dbUser.password,
+      );
+
+      if (!passwordsMatch) {
+        return { error: "Incorrect password!" };
+      }
+
+      const hashedPassword = await bcrypt.hash(
+        newPassword,
+        10,
+      );
+      password = hashedPassword;
+      newPassword = undefined;
+    };
+
+    // if (!bio || !profileImage || !coverImage) {
+    //   bio = null;
+    //   profileImage = null;
+    //   coverImage = null;
+    // }
+
+    const updatedUser = await prismaClient.user.update({
+      where: { id: dbUser.id },
+      data: {
+        name,
+        username,
+        email,
+        bio,
+        profileImage,
+        coverImage,
+        password
+      }
+    });
+
+    const userToken = JWTService.generateTokenForUser(updatedUser);
+
+    return userToken;
+
+  };
+
   public static async createUser(payload: CreateUser) {
     const { email, password, name, username } = payload;
 
@@ -163,7 +266,8 @@ class UserService {
         name,
         username,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        isOAuth: false,
       }
     });
 

@@ -2,12 +2,18 @@ import * as z from 'zod';
 
 
 export const SettingsSchema = z.object({
-    name: z.optional(z.string()),
-    username: z.optional(z.string()),
-    email: z.optional(z.string().email()),
+    name: z.string().min(2, {
+        message: "Name is required"
+    }),
+    username: z.string().min(3, {
+        message: "Name is required"
+    }),
+    email: z.string().email(),
     bio: z.optional(z.string()),
-    password: z.optional(z.string().min(6)),
+    password: z.optional(z.string().min(5)),
     newPassword: z.optional(z.string().min(6)),
+    profileImage: z.optional(z.string()),
+    coverImage: z.optional(z.string()),
 })
     .refine((data) => {
         if (data.password && !data.newPassword) {

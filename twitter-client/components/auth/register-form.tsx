@@ -17,18 +17,9 @@ import {
 } from "@/components/ui/form"
 
 import { Input } from "@/components/ui/input"
-import { FormError } from '@/components/form-error';
-import { FormSuccess } from '@/components/form-success';
-import { useCallback, useState, useTransition } from 'react';
-// import { register } from '@/actions/register';
+import {  useState } from 'react';
 import { ClipLoader } from 'react-spinners';
 import { useCreateUser } from '@/hooks/user';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createUserMutation } from '@/graphql/mutation/user';
-import { graphqlClient } from '@/clients/api';
-import { FaCheckCircle } from 'react-icons/fa';
-import { useRouter } from 'next/navigation';
-import { BsExclamationTriangle } from 'react-icons/bs';
 
 const RegisterForm = () => {
 

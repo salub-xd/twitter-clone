@@ -12,14 +12,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 import { FaUser } from 'react-icons/fa6';
 import { useRouter } from 'next/navigation';
+import { User } from '@/gql/graphql';
 
-interface User {
-        id: string;
-        name: string;
-        email: string;
-        profileImage?: string;
-        username?: string; // Assuming username should always be a string
-}
+// interface User {
+//         id: string;
+//         name: string;
+//         email: string;
+//         profileImage?: string;
+//         username?: string; // Assuming username should always be a string
+// }
 
 type UserButtonProps = {
     data: User;
@@ -60,7 +61,7 @@ export const UserButton: React.FC<UserButtonProps> = ({
                         </Avatar>
                         <div className='w-28 flex-col items-start hidden lg:flex'>
                             <h1 className='text-lg text-black font-semibold transition-colors sm:text-lg'>{data?.name}</h1>
-                            {data.username && <p className='text-sm  text-black font-normal transition-colors'>@{data?.username}</p>}
+                            {data?.username && <p className='text-sm  text-black font-normal transition-colors'>@{data?.username}</p>}
                         </div>
                     </div>
                     <div className='hidden lg:flex'>
@@ -71,7 +72,7 @@ export const UserButton: React.FC<UserButtonProps> = ({
             <PopoverContent className='w-56 border shadow-none rounded-xl py-1 bg-white hover:bg-stone-200'>
                 <Button className='w-full hover:bg-stone-200 py-1' variant={'ghost'} onClick={handleLogout}>
                     Logout
-                    <span className='ml-2 font-light'>@</span>{data.username}
+                    <span className='ml-2 font-light'>@</span>{data?.username}
                 </Button>
             </PopoverContent>
         </Popover>
